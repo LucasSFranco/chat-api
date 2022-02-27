@@ -32,7 +32,7 @@ export class UsersController {
 
 			return res
 				.status(400)
-				.json({ errors })
+				.json([...errors])
 		}
 	}
 }

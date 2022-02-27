@@ -11,11 +11,77 @@ datasource db {
 }
 
 model User {
-  id       String @id @default(uuid())
-  name     String
-  email    String @unique
-  password String
+  id          String        @id @default(uuid())
+  name        String
+  avatar      String?
+  email       String        @unique
+  status      String?
+  password    String
+  ownMessages Message[]
+  ownRooms    Room[]
+  messages    UserMessage[]
+  rooms       UserRoom[]
 
-	@@map("users")
+  @@map("users")
 }
 
+model UserRoom {
+  user      User      @relation(fields: [userId], references: [id])
+  userId    String
+  room      Room      @relation(fields: [roomId], references: [id])
+  roomId    String
+  muted     Boolean   @default(false)
+  deleted   Boolean   @default(false)
+  clearedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@id([userId, roomId])
+  @@map("users_rooms")
+}
+
+model Room {
+  id        String     @id @default(uuid())
+  creator   User?      @relation(fields: [creatorId], references: [id])
+  creatorId String?
+  name      String
+  createdAt DateTime   @default(now())
+  users     UserRoom[]
+  messages  Message[]
+
+  @@map("rooms")
+}
+
+model UserMessage {
+  user         User      @relation(fields: [userId], references: [id])
+  userId       String
+  message      Message   @relation(fields: [messageId], references: [id])
+  messageId    String
+  deleted      Boolean   @default(false)
+  receivedAt   DateTime?
+  visualizedAt DateTime?
+
+  @@id([userId, messageId])
+  @@map("users_messages")
+}
+
+model Message {
+  id       String        @id @default(uuid())
+  author   User          @relation(fields: [authorId], references: [id])
+  authorId String
+  room     Room          @relation(fields: [roomId], references: [id])
+  roomId   String
+  text     String
+  users    UserMessage[]
+  files    File[]
+
+  @@map("messages")
+}
+
+model File {
+  id        String  @id @default(uuid())
+  message   Message @relation(fields: [messageId], references: [id])
+  messageId String
+  url       String
+
+  @@map("files")
+}
