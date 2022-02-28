@@ -1,10 +1,11 @@
 import Joi from 'joi'
+import { compare } from 'bcryptjs'
 
 import { PASSWORD_STRENGTH } from '../constants'
 import { client } from '../prisma/client'
 
 export class UserValidation {
-	static create = Joi.object({
+	static register = Joi.object({
 		name: Joi
 			.string()
 			.required()
@@ -56,6 +57,55 @@ export class UserValidation {
 		email: value.email,
 		password: value.password
 	}))
+
+	static login = Joi.object({
+		email: Joi
+			.string()
+			.email()
+			.required()
+			.messages({
+				'string.base': 'email/invalid',
+				'string.email': 'email/invalid',
+				'string.empty': 'email/required',
+				'any.required': 'email/required'
+			}),
+		password: Joi
+			.string()
+			.required()
+			.messages({
+				'string.base': 'password/invalid',
+				'string.empty': 'password/required',
+				'any.required': 'password/required'
+			})
+	}).external(UserValidation.findUser)
+
+	static async findUser(value) {
+		const user = await client.user.findFirst({
+			where: { email: value.email }
+		})
+
+		const passwordMatches = await compare(value.password, user.password)
+
+		if (!passwordMatches)
+			throw new Joi.ValidationError(
+				'login.unauthorized',
+				[
+					{
+						message: 'login/unauthorized',
+						path: ['email', 'password'],
+						type: 'login.unauthorized',
+						context: {
+							key: null,
+							label: 'login',
+							value: value
+						}
+					}
+				],
+				{ value: value }
+			)
+
+		return user.id
+	}
 
 	static async verifyEmailUniqueness(email: string) {
 		const user = await client.user.findFirst({
