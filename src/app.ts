@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import 'express-async-errors'
 import express from 'express'
 
@@ -5,8 +6,10 @@ const app = express()
 
 app.use(express.json())
 
-import { router } from './routes'
+import { publicRouter } from './routes/public'
+import { authenticate } from './middlewares/authenticate'
 
-app.use(router)
+app.use(publicRouter)
+app.use(authenticate)
 
 export { app }
