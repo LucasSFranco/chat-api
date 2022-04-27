@@ -12,7 +12,7 @@ datasource db {
 
 model User {
   id          String        @id @default(uuid())
-  name        String
+  username    String
   avatar      String?
   email       String        @unique
   status      String?
@@ -21,8 +21,28 @@ model User {
   ownRooms    Room[]
   messages    UserMessage[]
   rooms       UserRoom[]
+  users       Friend[]      @relation("users")
+  friends     Friend[]      @relation("friends")
 
   @@map("users")
+}
+
+enum FriendStatus {
+  ACCEPTED
+  PENDING
+  BLOCKED
+}
+
+model Friend {
+  user     User         @relation("users", fields: [userId], references: [id])
+  userId   String
+  friend   User         @relation("friends", fields: [friendId], references: [id])
+  friendId String
+  status   FriendStatus @default(PENDING)
+  sentByMe Boolean      @default(false)
+
+  @@unique([userId, friendId])
+  @@map("friends")
 }
 
 model UserRoom {
