@@ -2,7 +2,8 @@
   "name": "imba-chat-api",
   "version": "1.0.0",
   "scripts": {
-    "serve": "tsnd --respawn src/server.ts"
+    "start:auth": "tsnd --respawn auth/server.ts",
+    "start:messenger": "tsnd --respawn messenger/server.ts"
   },
   "license": "ISC",
   "dependencies": {
